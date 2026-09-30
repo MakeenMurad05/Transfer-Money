@@ -1,3 +1,0 @@
-c:\Users\m.elsakkah\Desktop\ASP.NET_csproj\MoneyTransfer\Domain\bin\Release\net10.0\publish\Domain.dll
-c:\Users\m.elsakkah\Desktop\ASP.NET_csproj\MoneyTransfer\Domain\bin\Release\net10.0\publish\Domain.deps.json
-c:\Users\m.elsakkah\Desktop\ASP.NET_csproj\MoneyTransfer\Domain\bin\Release\net10.0\publish\Domain.pdb
