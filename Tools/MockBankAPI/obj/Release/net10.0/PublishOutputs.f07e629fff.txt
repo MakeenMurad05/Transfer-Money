@@ -1,0 +1,7 @@
+c:\Users\m.elsakkah\Desktop\ASP.NET_csproj\MoneyTransfer\Tools\MockBankAPI\bin\Release\net10.0\publish\MockBankAPI.exe
+c:\Users\m.elsakkah\Desktop\ASP.NET_csproj\MoneyTransfer\Tools\MockBankAPI\bin\Release\net10.0\publish\appsettings.Development.json
+c:\Users\m.elsakkah\Desktop\ASP.NET_csproj\MoneyTransfer\Tools\MockBankAPI\bin\Release\net10.0\publish\appsettings.json
+c:\Users\m.elsakkah\Desktop\ASP.NET_csproj\MoneyTransfer\Tools\MockBankAPI\bin\Release\net10.0\publish\MockBankAPI.dll
+c:\Users\m.elsakkah\Desktop\ASP.NET_csproj\MoneyTransfer\Tools\MockBankAPI\bin\Release\net10.0\publish\MockBankAPI.deps.json
+c:\Users\m.elsakkah\Desktop\ASP.NET_csproj\MoneyTransfer\Tools\MockBankAPI\bin\Release\net10.0\publish\MockBankAPI.runtimeconfig.json
+c:\Users\m.elsakkah\Desktop\ASP.NET_csproj\MoneyTransfer\Tools\MockBankAPI\bin\Release\net10.0\publish\MockBankAPI.pdb

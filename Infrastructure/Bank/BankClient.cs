@@ -1,0 +1,108 @@
+using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
+using Application.Common.Interfaces;
+using Application.Common.Models;
+
+namespace MoneyTransfer.Infrastructure.Bank;
+
+public class BankClient : IBankClient
+{
+    private const string TransferPath = "api/bank/transfers";
+    private const string SuccessCode = "00";
+
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    private readonly HttpClient _httpClient;
+
+    public BankClient(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+    }
+
+    public async Task<BankTransferResult> TransferAsync(
+        BankTransferRequest request,
+        CancellationToken cancellationToken)
+    {
+        var requestBody = JsonSerializer.Serialize(request, JsonOptions);
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            using var content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+            using var response = await _httpClient.PostAsync(TransferPath, content, cancellationToken);
+        
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            stopwatch.Stop();
+
+            var statusCode = (int)response.StatusCode;
+            var bankResponse = TryParse(responseBody);
+
+            // Case: 200 + "00" → Success
+            if (response.IsSuccessStatusCode && bankResponse?.ResponseCode == SuccessCode)
+            {
+                return new BankTransferResult(
+                    IsSuccess: true,
+                    ResponseCode: bankResponse.ResponseCode,
+                    ResponseMessage: bankResponse.ResponseMessage,
+                    BankReference: bankResponse.BankReference,
+                    RequestBody: requestBody,
+                    ResponseBody: responseBody,
+                    HttpStatusCode: statusCode,
+                    DurationMs: stopwatch.ElapsedMilliseconds);
+            }
+
+            // Case: 200 but another code → Business Error
+            // Case: 400 / 500 / anything else → HTTP Error
+            var defaultMessage = statusCode switch
+            {
+                >= 200 and < 300 => "Bank rejected the transfer",
+                400 => "Bank rejected the request as invalid",
+                >= 500 => "Bank service error",
+                _ => $"Unexpected response from bank ({statusCode})"
+            };
+
+            return Failed(
+                bankResponse?.ResponseCode,
+                bankResponse?.ResponseMessage ?? defaultMessage,
+                requestBody, responseBody, statusCode, stopwatch.ElapsedMilliseconds);
+        }
+        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            // Case: Timeout
+            stopwatch.Stop();
+            return Failed("TIMEOUT", "Bank did not respond in time",
+                requestBody, null, null, stopwatch.ElapsedMilliseconds);
+        }
+        catch (HttpRequestException)
+        {
+            // Case: Connection Error
+            stopwatch.Stop();
+            return Failed("CONNECTION_ERROR", "Could not connect to the bank",
+                requestBody, null, null, stopwatch.ElapsedMilliseconds);
+        }
+    }
+
+    private static BankTransferResult Failed(
+        string? code, string message, string requestBody,
+        string? responseBody, int? statusCode, long durationMs)
+        => new(false, code, message, null, requestBody, responseBody, statusCode, durationMs);
+
+    private static BankResponse? TryParse(string body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return null;
+
+        try
+        {
+            return JsonSerializer.Deserialize<BankResponse>(body, JsonOptions);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    // The bank's own response format. Only BankClient knows it.
+    private record BankResponse(string ResponseCode, string ResponseMessage, string? BankReference);
+}

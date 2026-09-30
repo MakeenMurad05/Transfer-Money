@@ -1,0 +1,62 @@
+@bank = http://localhost:5100
+
+### Success
+
+POST {{bank}}/api/bank/transfers
+Content-Type: application/json
+
+{
+  "transactionId": "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+  "accountNumber": "001234567890",
+  "amount": 150.750,
+  "currency": "LYD",
+  "reference": "MW-001"
+}
+
+### 2. Bad Request (400)
+POST {{bank}}/api/bank/transfers
+Content-Type: application/json
+
+{
+  "transactionId": "3f2504e0-4f89-11d3-9a0c-0305e82c3302",
+  "accountNumber": "001234567890",
+  "amount": 400,
+  "currency": "LYD",
+  "reference": "MW-002"
+}
+
+### 3. Server Error (500)
+POST {{bank}}/api/bank/transfers
+Content-Type: application/json
+
+{
+  "transactionId": "3f2504e0-4f89-11d3-9a0c-0305e82c3303",
+  "accountNumber": "001234567890",
+  "amount": 500,
+  "currency": "LYD",
+  "reference": "MW-003"
+}
+
+### 4. Slow bank (waits 10 seconds)
+POST {{bank}}/api/bank/transfers
+Content-Type: application/json
+
+{
+  "transactionId": "3f2504e0-4f89-11d3-9a0c-0305e82c3304",
+  "accountNumber": "001234567890",
+  "amount": 999,
+  "currency": "LYD",
+  "reference": "MW-004"
+}
+
+### 5. Business Error (200 + code 51)
+POST {{bank}}/api/bank/transfers
+Content-Type: application/json
+
+{
+  "transactionId": "3f2504e0-4f89-11d3-9a0c-0305e82c3305",
+  "accountNumber": "001234567890",
+  "amount": 20000,
+  "currency": "LYD",
+  "reference": "MW-005"
+}

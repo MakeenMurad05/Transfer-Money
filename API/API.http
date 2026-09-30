@@ -1,0 +1,46 @@
+@api = http://localhost:5082
+
+### 1. Success
+POST {{api}}/api/transfers
+Content-Type: application/json
+
+{ "accountNumber": "001234567890", "amount": 150.750, "currency": "LYD", "reference": "MW-001" }
+
+
+
+
+### 2. Same Reference again (duplicate)
+POST {{api}}/api/transfers
+Content-Type: application/json
+
+{ "accountNumber": "001234567890", "amount": 150.750, "currency": "LYD", "reference": "MW-001" }
+
+### 3. Bank 400
+POST {{api}}/api/transfers
+Content-Type: application/json
+
+{ "accountNumber": "001234567890", "amount": 400, "currency": "LYD", "reference": "MW-002" }
+
+### 4. Bank 500
+POST {{api}}/api/transfers
+Content-Type: application/json
+
+{ "accountNumber": "001234567890", "amount": 500, "currency": "LYD", "reference": "MW-003" }
+
+### 5. Timeout
+POST {{api}}/api/transfers
+Content-Type: application/json
+
+{ "accountNumber": "001234567890", "amount": 999, "currency": "LYD", "reference": "MW-004" }
+
+### 6. Business Error
+POST {{api}}/api/transfers
+Content-Type: application/json
+
+{ "accountNumber": "001234567890", "amount": 20000, "currency": "LYD", "reference": "MW-005" }
+
+### 7. Invalid amount
+POST {{api}}/api/transfers
+Content-Type: application/json
+
+{ "accountNumber": "001234567890", "amount": -5, "currency": "LYD", "reference": "MW-006" }
