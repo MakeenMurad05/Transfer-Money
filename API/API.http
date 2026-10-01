@@ -4,7 +4,7 @@
 POST {{api}}/api/transfers
 Content-Type: application/json
 
-{ "accountNumber": "001234567890", "amount": 150.750, "currency": "LYD", "reference": "MW-001" }
+{ "accountNumber": "001234567890", "amount": 150.750, "currency": "LYD", "reference": "MW-010" }
 
 
 
@@ -44,3 +44,21 @@ POST {{api}}/api/transfers
 Content-Type: application/json
 
 { "accountNumber": "001234567890", "amount": -5, "currency": "LYD", "reference": "MW-006" }
+
+
+
+
+
+
+
+### Get all transfers
+GET {{api}}/api/transfers
+
+### Get one transfer
+GET {{api}}/api/transfers/1
+
+### Not found
+GET {{api}}/api/transfers/99999
+
+### Not a number
+GET {{api}}/api/transfers/abc
