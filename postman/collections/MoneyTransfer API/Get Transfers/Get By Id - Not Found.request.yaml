@@ -1,0 +1,5 @@
+$kind: http-request
+description: "Expected: 404 Not Found."
+url: "{{baseUrl}}/api/transfers/99999"
+method: GET
+order: 3000

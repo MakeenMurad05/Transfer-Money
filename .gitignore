@@ -24,3 +24,8 @@ coverage/
 *.pfx
 *.p12
 *.key
+
+
+# Postman workspace files
+.postman/
+

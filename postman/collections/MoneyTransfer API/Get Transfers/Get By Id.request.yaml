@@ -1,0 +1,5 @@
+$kind: http-request
+description: "Change the transferId variable to an existing id. Expected: 200 OK."
+url: "{{baseUrl}}/api/transfers/{{transferId}}"
+method: GET
+order: 2000

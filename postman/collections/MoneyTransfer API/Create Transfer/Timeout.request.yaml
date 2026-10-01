@@ -1,0 +1,16 @@
+$kind: http-request
+description: "Takes about 5 seconds. Expected: 201 Created, status = Failed, responseCode = TIMEOUT."
+url: "{{baseUrl}}/api/transfers"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "accountNumber": "001234567890",
+      "amount": 999,
+      "currency": "LYD",
+      "reference": "MW-{{$timestamp}}"
+    }
+order: 6000

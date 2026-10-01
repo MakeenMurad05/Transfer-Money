@@ -1,0 +1,5 @@
+$kind: http-request
+description: "Expected: 200 OK, newest first."
+url: "{{baseUrl}}/api/transfers"
+method: GET
+order: 1000
