@@ -8,6 +8,7 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("api/transfers")]
+[Produces("application/json")]
 public class TransfersController : ControllerBase
 {
     private readonly ISender _sender;
@@ -18,6 +19,9 @@ public class TransfersController : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(TransferDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<TransferDto>> Create(
         CreateTransferCommand command,
         CancellationToken cancellationToken)
@@ -29,6 +33,7 @@ public class TransfersController : ControllerBase
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyList<TransferDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<TransferDto>>> GetAll(CancellationToken cancellationToken)
     {
         var result = await _sender.Send(new GetTransfersQuery(), cancellationToken);
@@ -36,6 +41,8 @@ public class TransfersController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(TransferDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TransferDto>> GetById(int id, CancellationToken cancellationToken)
     {
         var result = await _sender.Send(new GetTransferByIdQuery(id), cancellationToken);

@@ -1,0 +1,151 @@
+{
+  "info": {
+    "name": "MoneyTransfer API",
+    "description": "Money transfer API (Clean Architecture, CQRS, MediatR, EF Core, HttpClient).\n\nBefore running:\n1. Start MockBank.Api (http://localhost:5100)\n2. Start the API and set the baseUrl variable to its port\n\nMock Bank magic amounts:\n- normal amount -> Success (code 00)\n- 400 -> Bank 400\n- 500 -> Bank 500\n- 999 -> Timeout\n- > 10000 -> Business Error (code 51)\n- Mock Bank stopped -> Connection Error",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "transferId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Create Transfer",
+      "item": [
+        {
+          "name": "Success",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/transfers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"001234567890\",\n  \"amount\": 150.750,\n  \"currency\": \"LYD\",\n  \"reference\": \"MW-{{$timestamp}}\"\n}"
+            },
+            "description": "Expected: 201 Created, status = Success, bankReference filled."
+          }
+        },
+        {
+          "name": "Duplicate Reference",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/transfers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"001234567890\",\n  \"amount\": 150.750,\n  \"currency\": \"LYD\",\n  \"reference\": \"MW-DUPLICATE-001\"\n}"
+            },
+            "description": "Send it TWICE. First: 201. Second: 409 Conflict."
+          }
+        },
+        {
+          "name": "Validation Error",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/transfers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"\",\n  \"amount\": -5,\n  \"currency\": \"LY\",\n  \"reference\": \"\"\n}"
+            },
+            "description": "Expected: 400 Bad Request with an errors object listing every invalid field."
+          }
+        },
+        {
+          "name": "Bank 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/transfers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"001234567890\",\n  \"amount\": 400,\n  \"currency\": \"LYD\",\n  \"reference\": \"MW-{{$timestamp}}\"\n}"
+            },
+            "description": "Expected: 201 Created, status = Failed, responseCode = 30."
+          }
+        },
+        {
+          "name": "Bank 500",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/transfers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"001234567890\",\n  \"amount\": 500,\n  \"currency\": \"LYD\",\n  \"reference\": \"MW-{{$timestamp}}\"\n}"
+            },
+            "description": "Expected: 201 Created, status = Failed, responseCode = 96."
+          }
+        },
+        {
+          "name": "Timeout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/transfers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"001234567890\",\n  \"amount\": 999,\n  \"currency\": \"LYD\",\n  \"reference\": \"MW-{{$timestamp}}\"\n}"
+            },
+            "description": "Takes about 5 seconds. Expected: 201 Created, status = Failed, responseCode = TIMEOUT."
+          }
+        },
+        {
+          "name": "Business Error",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/transfers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"001234567890\",\n  \"amount\": 20000,\n  \"currency\": \"LYD\",\n  \"reference\": \"MW-{{$timestamp}}\"\n}"
+            },
+            "description": "Bank returns HTTP 200 but refuses. Expected: 201 Created, status = Failed, responseCode = 51."
+          }
+        },
+        {
+          "name": "Connection Error",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/transfers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"001234567890\",\n  \"amount\": 150.750,\n  \"currency\": \"LYD\",\n  \"reference\": \"MW-{{$timestamp}}\"\n}"
+            },
+            "description": "STOP the Mock Bank first. Expected: 201 Created, status = Failed, responseCode = CONNECTION_ERROR."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Transfers",
+      "item": [
+        {
+          "name": "Get All",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/transfers",
+            "description": "Expected: 200 OK, newest first."
+          }
+        },
+        {
+          "name": "Get By Id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/transfers/{{transferId}}",
+            "description": "Change the transferId variable to an existing id. Expected: 200 OK."
+          }
+        },
+        {
+          "name": "Get By Id - Not Found",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/transfers/99999",
+            "description": "Expected: 404 Not Found."
+          }
+        }
+      ]
+    }
+  ]
+}
