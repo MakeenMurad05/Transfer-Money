@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Application.Common.Interfaces;
 using Application.Common.Models;
+using Microsoft.Extensions.Logging;
 
 namespace MoneyTransfer.Infrastructure.Bank;
 
@@ -15,9 +16,12 @@ public class BankClient : IBankClient
 
     private readonly HttpClient _httpClient;
 
-    public BankClient(HttpClient httpClient)
+    private readonly ILogger<BankClient> _logger;
+
+    public BankClient(HttpClient httpClient, ILogger<BankClient> logger)
     {
         _httpClient = httpClient;
+        _logger = logger;
     }
 
     public async Task<BankTransferResult> TransferAsync(
@@ -71,13 +75,21 @@ public class BankClient : IBankClient
         {
             // Case: Timeout
             stopwatch.Stop();
+            _logger.LogWarning(
+                    "Bank call timed out for {TransactionId} after {DurationMs} ms",
+                    request.TransactionId, stopwatch.ElapsedMilliseconds);
+
             return Failed("TIMEOUT", "Bank did not respond in time",
                 requestBody, null, null, stopwatch.ElapsedMilliseconds);
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException ex )
         {
             // Case: Connection Error
             stopwatch.Stop();
+                _logger.LogError(ex , 
+                "Could not connect to bank for {TransactionId}" ,
+                request.TransactionId);
+
             return Failed("CONNECTION_ERROR", "Could not connect to the bank",
                 requestBody, null, null, stopwatch.ElapsedMilliseconds);
         }

@@ -4,7 +4,7 @@
 POST {{api}}/api/transfers
 Content-Type: application/json
 
-{ "accountNumber": "001234567890", "amount": 150.750, "currency": "LYD", "reference": "MW-010" }
+{ "accountNumber": "001234567890", "amount": 150.750, "currency": "LYD", "reference": "MW-011" }
 
 
 

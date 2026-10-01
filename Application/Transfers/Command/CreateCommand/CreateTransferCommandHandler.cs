@@ -5,24 +5,20 @@ using Application.Transfers.Common;
 using Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Transfers.Command.CreateCommand;
 
 namespace Application.Transfers.Command.CreateCommand;
 
-public class CreateTransferCommandHandler : IRequestHandler<CreateTransferCommand , TransferDto>
+public class CreateTransferCommandHandler(IAppDbContext context, IBankClient bankClient , ILogger<CreateTransferCommandHandler> _logger) : IRequestHandler<CreateTransferCommand , TransferDto>
 {
     
 
     private const string BankServiceName = "BankTransfer";
 
-    private readonly IAppDbContext _context;
-    private readonly IBankClient _bankClient;
-
-    public CreateTransferCommandHandler(IAppDbContext context, IBankClient bankClient)
-    {
-        _context = context;
-        _bankClient = bankClient;
-    }
+    private readonly IAppDbContext _context = context;
+    private readonly IBankClient _bankClient = bankClient;
+    private readonly ILogger<CreateTransferCommandHandler> _logger = _logger;
 
     public async Task<TransferDto> Handle(CreateTransferCommand request, CancellationToken cancellationToken)
     {
@@ -35,6 +31,9 @@ public class CreateTransferCommandHandler : IRequestHandler<CreateTransferComman
         _context.Transfers.Add(transfer);
 
         await SavePendingAsync(request.Reference ,cancellationToken);
+        _logger.LogInformation(
+            "Transfer {Reference} saved as Pending with TransactionId {TransactionId}",
+            transfer.Reference, transfer.TransactionId);
 
 
         // From here we finish the job even if the client disconnects
@@ -66,6 +65,15 @@ public class CreateTransferCommandHandler : IRequestHandler<CreateTransferComman
 
         // Log + status saved together: both or neither
         await _context.SaveChangesAsync(CancellationToken.None);
+
+        if (bankResult.IsSuccess)
+            _logger.LogInformation(
+                "Transfer {Reference} succeeded. BankReference {BankReference}, took {DurationMs} ms",
+                transfer.Reference, transfer.BankReference, bankResult.DurationMs);
+        else
+            _logger.LogWarning(
+                "Transfer {Reference} failed with code {ResponseCode}: {ResponseMessage}, took {DurationMs} ms",
+                transfer.Reference, transfer.ResponseCode, transfer.ResponseMessage, bankResult.DurationMs);
 
         //  return the result
         return transfer.ToDto();
