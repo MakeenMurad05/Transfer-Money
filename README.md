@@ -52,7 +52,7 @@ The solution follows **Clean Architecture**. It is split into 4 layers, and depe
 - **Application never knows about SQL Server or HTTP details.** It works with interfaces; Infrastructure provides the implementations.
 - **Each layer registers its own services** (`AddApplication()`, `AddInfrastructure()`), so `Program.cs` stays short.
 
--    For the reasoning behind each design choice, see [DECISIONS.md](DECISIONS.md).
+For the reasoning behind each design choice, see [DECISIONS.md](DECISIONS.md).
 
 ### CQRS
 
