@@ -1,8 +1,9 @@
 using Application.Transfers.Common;
-using Application.Transfers.Query.GetTransfers;
+using Application.Transfers.Queries.GetTransfers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Transfers.Command.CreateCommand;
+using Application.Transfers.Commands.CreateTransfer;
+using Application.Transfers.Queries.GetTransferById;
 
 namespace API.Controllers;
 

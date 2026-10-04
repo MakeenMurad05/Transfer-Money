@@ -4,8 +4,9 @@ using Application.Transfers.Common;
 using Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Application.Common.Exceptions;
 
-namespace Application.Transfers.Query.GetTransfers;
+namespace Application.Transfers.Queries.GetTransferById;
 
 
 public class GetTransferByIdQueryHandler : IRequestHandler<GetTransferByIdQuery, TransferDto>

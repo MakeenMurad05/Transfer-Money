@@ -1,7 +1,7 @@
 using Application.Transfers.Common;
 using MediatR;
 
-namespace Transfers.Command.CreateCommand;
+namespace Application.Transfers.Commands.CreateTransfer;
 
 public record CreateTransferCommand(
     string AccountNumber,

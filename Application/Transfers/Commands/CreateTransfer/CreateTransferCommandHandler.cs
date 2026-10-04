@@ -6,9 +6,9 @@ using Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Transfers.Command.CreateCommand;
+using Application.Transfers.Commands.CreateTransfer;
 
-namespace Application.Transfers.Command.CreateCommand;
+namespace Application.Transfers.Commands.CreateTransfer;
 
 public class CreateTransferCommandHandler(IAppDbContext context, IBankClient bankClient , ILogger<CreateTransferCommandHandler> _logger) : IRequestHandler<CreateTransferCommand , TransferDto>
 {

@@ -5,7 +5,7 @@ using Application.Common.Interfaces;
 using Application.Common.Models;
 using Microsoft.Extensions.Logging;
 
-namespace MoneyTransfer.Infrastructure.Bank;
+namespace Infrastructure.Bank;
 
 public class BankClient : IBankClient
 {

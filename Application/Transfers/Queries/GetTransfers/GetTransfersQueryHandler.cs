@@ -3,7 +3,7 @@ using Application.Transfers.Common;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.Transfers.Query.GetTransfers;
+namespace Application.Transfers.Queries.GetTransfers;
 
 
 public class GetTransfersQueryHandler : IRequestHandler<GetTransfersQuery, IReadOnlyList<TransferDto>>

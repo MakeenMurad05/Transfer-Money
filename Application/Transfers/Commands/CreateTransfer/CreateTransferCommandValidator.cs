@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace Transfers.Command.CreateCommand;
+namespace Application.Transfers.Commands.CreateTransfer;
 
 public class CreateTransferCommandValidator : AbstractValidator<CreateTransferCommand>
 {
