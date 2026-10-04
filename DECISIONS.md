@@ -37,7 +37,8 @@ For every choice, the same 4 questions:
 ### Project references
 - `Application → Domain`: handlers use the entities.
 - `Infrastructure → Application`: Infrastructure **implements** the interfaces Application defines.
-- `API → Infrastructure`: only so `Program.cs` can register services. Controllers never use Infrastructure.
+- `API → Application`: controllers send Commands and Queries, and return Application's DTOs.
+- `API → Infrastructure`: only so `Program.cs` can call `AddInfrastructure(...)`. Controllers never use Infrastructure classes directly.
 - `Domain → nothing`: the core never breaks when a framework changes. Domain has **zero** NuGet packages.
 
 ### `IAppDbContext` instead of Repositories
