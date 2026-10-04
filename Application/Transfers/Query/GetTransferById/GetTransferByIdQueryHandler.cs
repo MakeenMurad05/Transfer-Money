@@ -23,7 +23,7 @@ public class GetTransferByIdQueryHandler : IRequestHandler<GetTransferByIdQuery,
          var transfer =  await _context.Transfers
                 .AsNoTracking()
                 .Where(t => t.Id == request.Id)
-                .Select(TransferMappings.ToDtoExpression)
+                .Select(TransferaMapping.ToDtoExpression)
                 .FirstOrDefaultAsync(cancellationToken);
 
                 return transfer ?? throw new NotFoundException($"Transfer with id {request.Id} was not found.");

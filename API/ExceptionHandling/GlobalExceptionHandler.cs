@@ -36,7 +36,7 @@ public class GlobalExceptionHandler(IProblemDetailsService _problemDetailsServic
             _ => new ProblemDetails
             {
                 Status = StatusCodes.Status500InternalServerError,
-                Title = " Server Error",
+                Title = "Server Error",
                 Detail = "An unexpected error occurred."
             }
 

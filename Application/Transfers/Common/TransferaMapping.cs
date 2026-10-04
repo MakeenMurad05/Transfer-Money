@@ -3,7 +3,7 @@ using Domain.Entities;
 
 namespace Application.Transfers.Common;
 
-public static class TransferMappings
+public static class TransferaMapping
 {
     // EF Core reads this and turns it into SQL
     public static readonly Expression<Func<Transfer, TransferDto>> ToDtoExpression = t => new TransferDto(
