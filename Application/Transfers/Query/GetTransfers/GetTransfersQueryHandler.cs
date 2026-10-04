@@ -22,7 +22,7 @@ public class GetTransfersQueryHandler : IRequestHandler<GetTransfersQuery, IRead
 
         return await _context.Transfers
             .AsNoTracking()
-            .OrderBy(x => x.Id)
+            .OrderByDescending(x => x.Id)
             .Select(TransferaMapping.ToDtoExpression)
             .ToListAsync(cancellationToken);
 
