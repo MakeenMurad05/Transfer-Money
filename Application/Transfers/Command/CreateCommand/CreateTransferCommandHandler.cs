@@ -57,7 +57,7 @@ public class CreateTransferCommandHandler(IAppDbContext context, IBankClient ban
 
         if (bankResult.IsSuccess)
             transfer.MarkSuccess(
-                bankResult.BankReference ?? string.Empty,
+                bankResult.BankReference,
                 bankResult.ResponseCode ?? string.Empty,
                 bankResult.ResponseMessage);
         else

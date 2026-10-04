@@ -47,6 +47,21 @@ public class BankClient : IBankClient
             // Case: 200 + "00" → Success
             if (response.IsSuccessStatusCode && bankResponse?.ResponseCode == SuccessCode)
             {
+                // Case: 200 + "00" but no BankReference → Invalid Response
+
+                if (string.IsNullOrWhiteSpace(bankResponse.BankReference))
+                {
+                    _logger.LogError(
+                        "Bank approved {TransactionId} but sent no BankReference",
+                        request.TransactionId);
+
+                    return Failed("INVALID_RESPONSE", "Bank approved the transfer but sent no bank reference",
+                        requestBody, responseBody, statusCode, stopwatch.ElapsedMilliseconds);
+                }
+
+
+
+            
                 return new BankTransferResult(
                     IsSuccess: true,
                     ResponseCode: bankResponse.ResponseCode,

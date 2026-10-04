@@ -33,8 +33,9 @@ public class Transfer
         CreatedAt = DateTime.UtcNow;
     }
 
-    public void MarkSuccess(string bankReference, string responseCode, string responseMessage)
+    public void MarkSuccess(string? bankReference, string responseCode, string responseMessage)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(bankReference);
         EnsurePending();
         Status = TransferStatus.Success;
         BankReference = bankReference;

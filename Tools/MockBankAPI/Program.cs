@@ -30,6 +30,7 @@ app.MapPost("/api/bank/transfers", async (BankTransferRequest request) =>
 
     return Results.Ok(
         new BankTransferResponse("00", "Approved", bankReference));
+
 });
 
 app.Run();
