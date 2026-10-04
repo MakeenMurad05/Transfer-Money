@@ -33,6 +33,8 @@ public class BankClient : IBankClient
 
         try
         {
+
+
             using var content = new StringContent(requestBody, Encoding.UTF8, "application/json");
             using var response = await _httpClient.PostAsync(TransferPath, content, cancellationToken);
         
@@ -92,8 +94,21 @@ public class BankClient : IBankClient
 
             return Failed("CONNECTION_ERROR", "Could not connect to the bank",
                 requestBody, null, null, stopwatch.ElapsedMilliseconds);
+        } 
+        catch (Exception ex ) when (!cancellationToken.IsCancellationRequested)
+        {
+            // Case: unexpected error
+            
+            stopwatch.Stop();
+                _logger.LogError(ex , 
+                "Unexpected error while calling bank for {TransactionId}" ,
+                request.TransactionId);
+
+            return Failed("UNEXPECTED_ERROR", "unexpected error while calling bank",
+                requestBody, null, null, stopwatch.ElapsedMilliseconds);
         }
     }
+    
 
     private static BankTransferResult Failed(
         string? code, string message, string requestBody,
