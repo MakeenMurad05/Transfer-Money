@@ -28,6 +28,7 @@ coverage/
 
 # Postman workspace files
 .postman/
+postman/
 
 PLAN.md
 
