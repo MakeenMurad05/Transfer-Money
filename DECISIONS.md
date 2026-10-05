@@ -61,14 +61,23 @@ For every choice, the same 4 questions:
 - `Transfers/Commands/CreateTransfer/...` instead of `Commands/`, `Validators/`, `Handlers/`.
 - **Why:** everything about one use case is in one place.
 
+### Naming rule
+- **Namespace = project name + folder path. File name = type name.** For example `Application/Transfers/Commands/CreateTransfer/` → `Application.Transfers.Commands.CreateTransfer`.
+- **Options for the root:** rename everything to `MoneyTransfer.*` / keep the short project names (`Application.`, `Infrastructure.`, `API.`).
+- **Chosen:** the short root. The problem was inconsistency, not the prefix. Renaming the projects would be a big, risky change for no real gain.
+
+### One constructor style
+- Classic constructors everywhere, not a mix of classic and primary constructors.
+- **Why:** mixing styles makes similar classes look different for no reason. Most classes already used classic constructors.
+
 ---
 
 ## 3. Domain
 
 ### Status as an enum with explicit numbers
-- **Why:** only 3 valid values, no typos possible. Explicit numbers (`= 0`, `= 1`) so adding a status later does not shift existing values,
-
-Why explicit numbers? A safety habit: if the storage is ever switched to numbers, adding a new status won't shift existing values. Today Status is stored as text, so the numbers don't affect the database.
+- **Why an enum:** only 3 valid values, no typos possible.
+- **Why explicit numbers?** A safety habit: if the storage is ever switched to numbers, adding a new status won't shift existing values. Today `Status` is stored as text, so the numbers don't affect the database.
+- **The real rule for text storage:** never **rename** a status once data is saved (e.g. `Success` → `Succeeded`), because existing rows would no longer match.
 
 ### Two IDs: `Id` and `TransactionId`
 - `Id` (int): database primary key, small and fast, used in `GET /api/transfers/{id}`.
@@ -78,6 +87,12 @@ Why explicit numbers? A safety habit: if the storage is ever switched to numbers
 - **Options:** public setters / state changes only through methods.
 - **Why methods:** no code can put a transfer in a wrong state (e.g. `Success` without a bank reference). The constructor always starts in `Pending`.
 - `EnsurePending()`: a finished transfer can never change again.
+- `MarkSuccess` rejects a null or blank `bankReference` (`ArgumentException.ThrowIfNullOrWhiteSpace`). It is the last line of defense; `BankClient` already handles this case properly (see section 7), so the guard only catches programming mistakes.
+
+### No guard clauses in the `Transfer` constructor (for now)
+- **Options:** validate in the constructor too / rely on the validator.
+- **Chosen:** rely on the validator.
+- **Why:** there is only one way to create a transfer today (`CreateTransferCommand`), and FluentValidation checks every rule before the entity is created. Constructor guards would be added as soon as a second entry point appears (an import job, another command).
 
 ### `DateTime.UtcNow` instead of `DateTime.Now`
 - **Why:** servers can run in different time zones. UTC is the same everywhere.
@@ -117,6 +132,19 @@ Why explicit numbers? A safety habit: if the storage is ever switched to numbers
 ### Migrations in Infrastructure, API as startup project
 - **Why:** migrations sit next to the DbContext. The API has the connection string and the `.Design` package. Migrations are code in Git, so anyone can rebuild the same database.
 
+### Connection string only in `appsettings.json`
+- **Options:** in both `appsettings.json` and `appsettings.Development.json` / only in the Development file / only in `appsettings.json` / User Secrets.
+- **Chosen:** only in `appsettings.json`, with `TrustServerCertificate=True` for local development.
+- **Why:** the Development file overrides the base file, so a copy there would silently ignore a reviewer's edit in `appsettings.json`. One place, matching the README. User Secrets are for passwords; this string has none (`Trusted_Connection`).
+- `TrustServerCertificate=True` is needed because the SQL client encrypts by default and a local SQL Server uses a self-signed certificate.
+
+### All `DateTime` values are read back as UTC
+- **Problem:** `datetime2` stores no time zone, so EF reads dates back as `Unspecified`. The same `createdAt` had a `Z` in the POST response but not in GET.
+- **Options:** switch to `DateTimeOffset` / fix only the DTO mapping / one global value converter.
+- **Chosen:** `UtcDateTimeConverter`, applied to every `DateTime` in `ConfigureConventions`. Reading marks the value as UTC (`SpecifyKind`); saving leaves it unchanged.
+- **Why:** every date is saved with `DateTime.UtcNow`, so "it is UTC" is true. One small class covers all dates with no schema change. `DateTimeOffset` would be more complete but changes entities, DTOs and columns. Fixing only the mapping would leave other readers wrong.
+- **Why not convert to UTC when saving:** `ToUniversalTime()` treats an `Unspecified` date as local time and shifts it.
+
 ---
 
 ## 5. Create Transfer flow
@@ -146,6 +174,13 @@ Why explicit numbers? A safety habit: if the storage is ever switched to numbers
 - Duplicate: the request is **rejected**, nothing is created (like a validation error) → exception → `409`.
 - Bank failure: the transfer **exists** and is saved as `Failed`, a valid outcome → result object.
 
+### If the final save fails
+- **Problem:** the bank has already answered (maybe "approved"), but saving the log and status fails. Without care, the bank's answer would be lost.
+- **Options:** catch and still return 201 / retry the save / log everything at `Critical` and rethrow.
+- **Chosen:** log the full bank result (`IsSuccess`, code, `BankReference`, HTTP status, response body) at `Critical`, then rethrow so the client gets an honest 500.
+- **Why:** returning 201 would lie (the database still says `Pending`). A retry helps only for short database hiccups, not for bad data. `Critical` means a human must act: money may have moved.
+- The request body is **not** logged here, because it contains the account number.
+
 ### `CancellationToken.None` after contacting the bank
 - **Why:** once we talk to the bank, we finish the job even if the client disconnects. Otherwise the money could move while our record stays `Pending`.
 
@@ -167,6 +202,9 @@ Why explicit numbers? A safety habit: if the storage is ever switched to numbers
 ### What the validator checks (and what it does not)
 - Max lengths match the database columns: clear message instead of an SQL error.
 - `PrecisionScale(18, 3, true)`: `150.7505` is rejected instead of silently rounded by SQL Server.
+- **`Currency` must match `^[A-Z]{3}$`** (like `LYD`). Rejected options: a fixed list of currencies (the task doesn't say which ones the bank supports) and auto-uppercasing `"lyd"` (silently changing client input is risky with money).
+- **`AccountNumber` must match `^[0-9]+$`**, not `\d`: in .NET, `\d` also matches Arabic-Indic digits (`٠١٢`), which a bank system would not expect. No exact length is enforced because the task does not define one.
+- **`Cascade(CascadeMode.Stop)`** on these rules: an empty value gets one clear message instead of two.
 - **Duplicate `Reference` is not in the validator:** the validator checks the **shape** of the data. Checking the database is a business rule and belongs in the handler.
 
 ### Missing fields
@@ -190,18 +228,27 @@ Why explicit numbers? A safety habit: if the storage is ever switched to numbers
 ### `BankClient` returns a result, it does not throw
 - **Why:** a bank refusing, crashing or being slow is an **expected** outcome. In every case the handler must save a log and mark the transfer. A result object keeps that to one `if`.
 - `BankClient` does not save the log itself. Its only job is HTTP. The handler saves log and status together.
+- **A final `catch (Exception)`** keeps this promise for anything unexpected. It is placed last (after the specific catches), logs at `Error` with the full exception, and returns `Failed` with `UNEXPECTED_ERROR`. Catching everything is usually a bad sign, but here it is at the boundary with an external system, where an outcome must always be recorded, and nothing is hidden.
+- **Options considered:** let it bubble up (the transfer stays `Pending` with no log) / catch it in the handler (the "never throws" rule would be split across two classes) / catch it in `BankClient`.
 
 ### Detecting each case
 
-| Case | Detected by |
-|---|---|
-| Success | HTTP 2xx **and** code `00` |
-| Business Error | HTTP 2xx but code is not `00` |
-| 400 / 500 | Status code |
-| Timeout | `TaskCanceledException` when our own token was **not** cancelled |
-| Connection Error | `HttpRequestException` |
+| Case | Detected by | ResponseCode |
+|---|---|---|
+| Success | HTTP 2xx **and** code `00` **and** a `BankReference` | bank code (`00`) |
+| Business Error | HTTP 2xx but code is not `00` | bank code (e.g. `51`) |
+| Approved without reference | HTTP 2xx + `00` but no `BankReference` | `INVALID_RESPONSE` |
+| 400 / 500 | Status code | bank code |
+| Timeout | `TaskCanceledException` when our own token was **not** cancelled | `TIMEOUT` |
+| Connection Error | `HttpRequestException` | `CONNECTION_ERROR` |
+| Anything else | Final `catch (Exception)` | `UNEXPECTED_ERROR` |
 
-- `TIMEOUT` and `CONNECTION_ERROR` are our own codes, because the bank never answered. They never clash with the bank's numeric codes.
+- `TIMEOUT`, `CONNECTION_ERROR`, `INVALID_RESPONSE` and `UNEXPECTED_ERROR` are our own codes, used when the bank gave no usable answer. They never clash with the bank's numeric codes, and all fit the `nvarchar(20)` column.
+
+### No `Success` without a `BankReference`
+- **Why:** the bank reference is the proof of the transfer. A "success" we cannot trace is not a success.
+- **Defense in depth:** `BankClient` turns "approved without reference" into `Failed` / `INVALID_RESPONSE` and logs it at `Error`, and `MarkSuccess` refuses a blank reference as a last guard.
+- **Trade-off:** the bank said "approved", so the money may have moved. `Failed` + an `Error` log is the safer of the two allowed statuses; a real system would use `Unknown` (same as timeout).
 
 ### Other details
 - **Request serialized manually** (not `PostAsJsonAsync`): we need the exact text for the log table.
@@ -244,6 +291,7 @@ Why explicit numbers? A safety habit: if the storage is ever switched to numbers
 - **`CreatedAtAction(nameof(GetById), ...)`:** the `Location` URL is built from the real route, no hand-written strings.
 - **Swagger (Swashbuckle):** the task names Swagger. The template's built-in OpenAPI was removed so there is only one generator. Enabled only in Development.
 - **`[ProducesResponseType]`:** Swagger shows every possible status and body, not only the success one.
+- **No `UseHttpsRedirection`:** the API runs on HTTP locally, and a redirect would break the Postman and `.http` requests. In real deployments HTTPS is usually handled by the hosting proxy (IIS, Nginx, a load balancer).
 
 ---
 
@@ -267,7 +315,7 @@ Why explicit numbers? A safety habit: if the storage is ever switched to numbers
 - **Options:** `Console.WriteLine` / `ILogger` / Serilog.
 - **Chosen:** `ILogger`. `Console.WriteLine` has no levels. Serilog is an extra package the task does not ask for.
 - **Message templates** (`"Transfer {Reference}"`) instead of string interpolation: values stay as searchable fields.
-- **Levels:** `Information` for success, `Warning` for expected failures (bank refused, timeout, 400/404/409), `Error` for unexpected problems (connection error, 500).
+- **Levels:** `Information` for success, `Warning` for expected failures (bank refused, timeout, 400/404/409), `Error` for unexpected problems (connection error, unexpected bank error, approved without reference, 500), `Critical` when the bank's answer could not be saved.
 - The full account number is **not** written to application logs. The `ExternalServiceLogs` table keeps the request body because the task requires it.
 
 ---
@@ -285,10 +333,12 @@ Why explicit numbers? A safety habit: if the storage is ever switched to numbers
 - Banking-style codes: `00` approved, `30` format error, `51` insufficient funds, `96` system error.
 - The timeout scenario waits 10s, our client timeout is 5s.
 - Fixed port (`5100`) so the URL in `appsettings.json` always matches.
+- A single `http` launch profile and no browser launch: the mock only speaks HTTP, so there is no wrong profile to pick, and its root URL has no page to show.
 
 ### Postman collection
 - References use `MW-{{$timestamp}}`, so the collection can be run many times without duplicate errors. Only the "Duplicate Reference" request uses a fixed value.
 - Each request describes its expected result.
+- **One collection only** (the JSON file in the repo root). Postman's own workspace folders are not tracked, so there is a single source of truth.
 
 ---
 
@@ -298,3 +348,6 @@ Why explicit numbers? A safety habit: if the storage is ever switched to numbers
 - **No pagination** on `GET /api/transfers`.
 - **The stored request log contains the full account number**, because the task asks to store the request. Masking it would be a good improvement.
 - **No automated tests yet.** The architecture makes them easy (e.g. a fake `IBankClient`).
+- **"Approved without a bank reference" is saved as `Failed`**, with an `Error` log for a human to check. Same reasoning as timeout: an `Unknown` status would be more accurate.
+- **Bank values are not truncated** to the column sizes. A very long message from the bank makes the final save fail; the transfer stays `Pending` and the full bank result is logged at `Critical`. Truncating would prevent it.
+- **References are compared case-insensitively** by SQL Server, so `mw-001` and `MW-001` count as the same reference.
