@@ -2,6 +2,9 @@
 
 An ASP.NET Core Web API that simulates a money transfer. It validates the request, saves the transfer as `Pending`, calls an external bank API, logs the bank request and response, and updates the transfer to `Success` or `Failed`.
 
+<img width="1901" height="917" alt="image" src="https://github.com/user-attachments/assets/6cd824f5-4706-4fb7-8167-801e4e09a33b" />
+
+
 ---
 
 ## Tech Stack
