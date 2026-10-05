@@ -6,16 +6,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Application.Transfers.Queries.GetTransfers;
 
 
-public class GetTransfersQueryHandler : IRequestHandler<GetTransfersQuery, IReadOnlyList<TransferDto>>
+public class GetTransfersQueryHandler(IAppDbContext context) : IRequestHandler<GetTransfersQuery, IReadOnlyList<TransferDto>>
 {
 
-    private readonly IAppDbContext _context;
-
-    public GetTransfersQueryHandler(IAppDbContext context)
-    {
-        _context = context;
-    }
-
+    private readonly IAppDbContext _context = context;
 
     public async Task<IReadOnlyList<TransferDto>> Handle(GetTransfersQuery request, CancellationToken cancellationToken)
     {

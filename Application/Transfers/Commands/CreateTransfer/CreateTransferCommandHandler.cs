@@ -10,7 +10,7 @@ using Application.Transfers.Commands.CreateTransfer;
 
 namespace Application.Transfers.Commands.CreateTransfer;
 
-public class CreateTransferCommandHandler(IAppDbContext context, IBankClient bankClient, ILogger<CreateTransferCommandHandler> _logger) : IRequestHandler<CreateTransferCommand, TransferDto>
+public class CreateTransferCommandHandler(IAppDbContext context, IBankClient bankClient, ILogger<CreateTransferCommandHandler> logger) : IRequestHandler<CreateTransferCommand, TransferDto>
 {
 
 
@@ -18,7 +18,7 @@ public class CreateTransferCommandHandler(IAppDbContext context, IBankClient ban
 
     private readonly IAppDbContext _context = context;
     private readonly IBankClient _bankClient = bankClient;
-    private readonly ILogger<CreateTransferCommandHandler> _logger = _logger;
+    private readonly ILogger<CreateTransferCommandHandler> _logger = logger;
 
     public async Task<TransferDto> Handle(CreateTransferCommand request, CancellationToken cancellationToken)
     {

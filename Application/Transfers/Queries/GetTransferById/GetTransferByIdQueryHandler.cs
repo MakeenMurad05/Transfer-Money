@@ -9,15 +9,10 @@ using Application.Common.Exceptions;
 namespace Application.Transfers.Queries.GetTransferById;
 
 
-public class GetTransferByIdQueryHandler : IRequestHandler<GetTransferByIdQuery, TransferDto>
+public class GetTransferByIdQueryHandler(IAppDbContext context) : IRequestHandler<GetTransferByIdQuery, TransferDto>
 {
 
-    private readonly IAppDbContext _context;
-
-    public GetTransferByIdQueryHandler(IAppDbContext context)
-    {
-        _context = context;
-    }
+    private readonly IAppDbContext _context = context;
 
     public async Task<TransferDto> Handle(GetTransferByIdQuery request, CancellationToken cancellationToken)
     {

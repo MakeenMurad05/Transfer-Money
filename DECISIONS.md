@@ -66,7 +66,9 @@ For every choice, the same 4 questions:
 ## 3. Domain
 
 ### Status as an enum with explicit numbers
-- **Why:** only 3 valid values, no typos possible. Explicit numbers (`= 0`, `= 1`) so adding a status later does not shift existing values.
+- **Why:** only 3 valid values, no typos possible. Explicit numbers (`= 0`, `= 1`) so adding a status later does not shift existing values,
+
+Why explicit numbers? A safety habit: if the storage is ever switched to numbers, adding a new status won't shift existing values. Today Status is stored as text, so the numbers don't affect the database.
 
 ### Two IDs: `Id` and `TransactionId`
 - `Id` (int): database primary key, small and fast, used in `GET /api/transfers/{id}`.
