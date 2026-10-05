@@ -131,6 +131,8 @@ MoneyTransfer/
 | HTTP 500 | Status code | `Failed` | bank code (e.g. `96`) |
 | Timeout | `TaskCanceledException` | `Failed` | `TIMEOUT` |
 | Connection Error | `HttpRequestException` | `Failed` | `CONNECTION_ERROR` |
+| HTTP 200 + `00` but no bank reference | Body has no reference | `Failed` | `INVALID_RESPONSE` |
+| Any other unexpected error | Final catch in `BankClient` | `Failed` | `UNEXPECTED_ERROR` |
 
 `BankClient` never throws for bank failures. It always returns a `BankTransferResult`, and the handler decides what to save.
 
