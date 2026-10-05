@@ -28,8 +28,11 @@ app.MapPost("/api/bank/transfers", async (BankTransferRequest request) =>
     // Case: Success
     var bankReference = "BNK-" + Guid.NewGuid().ToString("N")[..10].ToUpper();
 
-    return Results.Ok(
-        new BankTransferResponse("00", "Approved", bankReference));
+    // return Results.Ok(
+    //     new BankTransferResponse("00", "Approved", bankReference));
+
+    // TEMP: a message too long for our column (500)
+    return Results.Ok(new BankTransferResponse("00", new string('x', 600), bankReference));
 
 });
 

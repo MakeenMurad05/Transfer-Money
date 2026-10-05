@@ -64,7 +64,34 @@ public class CreateTransferCommandHandler(IAppDbContext context, IBankClient ban
             transfer.MarkFailed(bankResult.ResponseCode, bankResult.ResponseMessage);
 
         // Log + status saved together: both or neither
-        await _context.SaveChangesAsync(CancellationToken.None);
+
+        try
+        {
+
+            await _context.SaveChangesAsync(CancellationToken.None);
+
+        }
+        catch (Exception ex)
+        {
+
+            // The bank already answered. If we can't save it, the logs are the only evidence left.
+
+            _logger.LogCritical(ex,
+                "Could not save bank result for transfer {Reference} ({TransactionId}). It stays Pending. " +
+                "Bank result: IsSuccess={IsSuccess}, ResponseCode={ResponseCode}, BankReference={BankReference}, " +
+                "HttpStatusCode={HttpStatusCode}, ResponseBody={ResponseBody}",
+                transfer.Reference,
+                transfer.TransactionId,
+                bankResult.IsSuccess,
+                bankResult.ResponseCode,
+                bankResult.BankReference,
+                bankResult.HttpStatusCode,
+                bankResult.ResponseBody);
+
+            throw;
+
+
+        }
 
         if (bankResult.IsSuccess)
             _logger.LogInformation(
