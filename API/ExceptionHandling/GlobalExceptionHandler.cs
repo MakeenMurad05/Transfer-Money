@@ -1,22 +1,22 @@
-using FluentValidation; 
+using FluentValidation;
 using Application.Common;
 using Application.Common.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace API.ExceptionHandling ;
+namespace API.ExceptionHandling;
 
 public class GlobalExceptionHandler(IProblemDetailsService _problemDetailsService, ILogger<GlobalExceptionHandler> _logger) : IExceptionHandler
 {
 
 
-     async ValueTask<bool> IExceptionHandler.TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+    async ValueTask<bool> IExceptionHandler.TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        
+
         var problemDetails = exception switch
         {
-            
-            ValidationException validationException => CreateValidationProblem(validationException) ,
+
+            ValidationException validationException => CreateValidationProblem(validationException),
 
             NotFoundException => new ProblemDetails
             {
@@ -44,10 +44,10 @@ public class GlobalExceptionHandler(IProblemDetailsService _problemDetailsServic
 
 
         if (problemDetails.Status == StatusCodes.Status500InternalServerError)
-                    _logger.LogError(exception, "Unhandled exception");
-                else
-                    _logger.LogWarning("Request failed with {StatusCode}: {Message}",
-                        problemDetails.Status, exception.Message);
+            _logger.LogError(exception, "Unhandled exception");
+        else
+            _logger.LogWarning("Request failed with {StatusCode}: {Message}",
+                problemDetails.Status, exception.Message);
 
         httpContext.Response.StatusCode = problemDetails.Status!.Value;
 
@@ -62,7 +62,7 @@ public class GlobalExceptionHandler(IProblemDetailsService _problemDetailsServic
 
     }
 
-     private static ProblemDetails CreateValidationProblem(ValidationException exception)
+    private static ProblemDetails CreateValidationProblem(ValidationException exception)
     {
         var problemDetails = new ProblemDetails
         {

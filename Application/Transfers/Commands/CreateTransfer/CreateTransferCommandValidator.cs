@@ -4,10 +4,10 @@ namespace Application.Transfers.Commands.CreateTransfer;
 
 public class CreateTransferCommandValidator : AbstractValidator<CreateTransferCommand>
 {
-    
+
     public CreateTransferCommandValidator()
     {
-        
+
         RuleFor(x => x.AccountNumber)
             .NotEmpty()
             .MaximumLength(20);

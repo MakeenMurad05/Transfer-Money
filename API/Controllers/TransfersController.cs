@@ -27,7 +27,7 @@ public class TransfersController : ControllerBase
         CreateTransferCommand command,
         CancellationToken cancellationToken)
     {
-        
+
         var result = await _sender.Send(command, cancellationToken);
         // return Created($"/api/transfers/{result.Id}", result);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);

@@ -9,7 +9,7 @@ namespace Application.Transfers.Queries.GetTransfers;
 public class GetTransfersQueryHandler : IRequestHandler<GetTransfersQuery, IReadOnlyList<TransferDto>>
 {
 
-    private readonly IAppDbContext _context ;
+    private readonly IAppDbContext _context;
 
     public GetTransfersQueryHandler(IAppDbContext context)
     {
@@ -18,7 +18,7 @@ public class GetTransfersQueryHandler : IRequestHandler<GetTransfersQuery, IRead
 
 
     public async Task<IReadOnlyList<TransferDto>> Handle(GetTransfersQuery request, CancellationToken cancellationToken)
-    {   
+    {
 
         return await _context.Transfers
             .AsNoTracking()

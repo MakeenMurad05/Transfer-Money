@@ -1,10 +1,10 @@
 using Domain.Enums;
 
-namespace Domain.Entities ;
+namespace Domain.Entities;
 
 public class Transfer
 {
-    
+
     public int Id { get; private set; }
     public Guid TransactionId { get; private set; }
     public string Reference { get; private set; } = string.Empty;
@@ -20,7 +20,7 @@ public class Transfer
 
 
 
-    private Transfer () {}
+    private Transfer() { }
 
     public Transfer(string reference, string accountNumber, decimal amount, string currency)
     {

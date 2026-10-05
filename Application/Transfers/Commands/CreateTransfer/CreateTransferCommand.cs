@@ -8,5 +8,5 @@ public record CreateTransferCommand(
     decimal Amount,
     string Currency,
     string Reference
-): IRequest<TransferDto>;
+) : IRequest<TransferDto>;
 

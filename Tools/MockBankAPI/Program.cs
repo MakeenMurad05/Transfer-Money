@@ -1,7 +1,7 @@
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-                        //----Mocking----//
+//----Mocking----//
 
 app.MapPost("/api/bank/transfers", async (BankTransferRequest request) =>
 {

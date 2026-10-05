@@ -4,5 +4,5 @@ using MediatR;
 namespace Application.Transfers.Queries.GetTransferById;
 
 
-public  record GetTransferByIdQuery (int Id ): IRequest<TransferDto>;
+public record GetTransferByIdQuery(int Id) : IRequest<TransferDto>;
 

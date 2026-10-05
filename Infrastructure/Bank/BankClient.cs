@@ -37,7 +37,7 @@ public class BankClient : IBankClient
 
             using var content = new StringContent(requestBody, Encoding.UTF8, "application/json");
             using var response = await _httpClient.PostAsync(TransferPath, content, cancellationToken);
-        
+
             var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
             stopwatch.Stop();
 
@@ -61,7 +61,7 @@ public class BankClient : IBankClient
 
 
 
-            
+
                 return new BankTransferResult(
                     IsSuccess: true,
                     ResponseCode: bankResponse.ResponseCode,
@@ -99,31 +99,31 @@ public class BankClient : IBankClient
             return Failed("TIMEOUT", "Bank did not respond in time",
                 requestBody, null, null, stopwatch.ElapsedMilliseconds);
         }
-        catch (HttpRequestException ex )
+        catch (HttpRequestException ex)
         {
             // Case: Connection Error
             stopwatch.Stop();
-                _logger.LogError(ex , 
-                "Could not connect to bank for {TransactionId}" ,
-                request.TransactionId);
+            _logger.LogError(ex,
+            "Could not connect to bank for {TransactionId}",
+            request.TransactionId);
 
             return Failed("CONNECTION_ERROR", "Could not connect to the bank",
                 requestBody, null, null, stopwatch.ElapsedMilliseconds);
-        } 
-        catch (Exception ex ) when (!cancellationToken.IsCancellationRequested)
+        }
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
             // Case: unexpected error
-            
+
             stopwatch.Stop();
-                _logger.LogError(ex , 
-                "Unexpected error while calling bank for {TransactionId}" ,
-                request.TransactionId);
+            _logger.LogError(ex,
+            "Unexpected error while calling bank for {TransactionId}",
+            request.TransactionId);
 
             return Failed("UNEXPECTED_ERROR", "unexpected error while calling bank",
                 requestBody, null, null, stopwatch.ElapsedMilliseconds);
         }
     }
-    
+
 
     private static BankTransferResult Failed(
         string? code, string message, string requestBody,

@@ -10,9 +10,9 @@ using Application.Transfers.Commands.CreateTransfer;
 
 namespace Application.Transfers.Commands.CreateTransfer;
 
-public class CreateTransferCommandHandler(IAppDbContext context, IBankClient bankClient , ILogger<CreateTransferCommandHandler> _logger) : IRequestHandler<CreateTransferCommand , TransferDto>
+public class CreateTransferCommandHandler(IAppDbContext context, IBankClient bankClient, ILogger<CreateTransferCommandHandler> _logger) : IRequestHandler<CreateTransferCommand, TransferDto>
 {
-    
+
 
     private const string BankServiceName = "BankTransfer";
 
@@ -24,13 +24,13 @@ public class CreateTransferCommandHandler(IAppDbContext context, IBankClient ban
     {
 
         // Stop Duplicate Referances 
-        await EnsureReferenceIsUniqueAsync(request.Reference , cancellationToken);
+        await EnsureReferenceIsUniqueAsync(request.Reference, cancellationToken);
 
         //Save as Pending 
-        var transfer = new Transfer(request.Reference , request.AccountNumber , request.Amount ,request.Currency);
+        var transfer = new Transfer(request.Reference, request.AccountNumber, request.Amount, request.Currency);
         _context.Transfers.Add(transfer);
 
-        await SavePendingAsync(request.Reference ,cancellationToken);
+        await SavePendingAsync(request.Reference, cancellationToken);
         _logger.LogInformation(
             "Transfer {Reference} saved as Pending with TransactionId {TransactionId}",
             transfer.Reference, transfer.TransactionId);
@@ -89,7 +89,7 @@ public class CreateTransferCommandHandler(IAppDbContext context, IBankClient ban
             throw new ConflictException($"A transfer with reference '{reference}' already exists.");
     }
 
-     private async Task SavePendingAsync(string reference, CancellationToken cancellationToken)
+    private async Task SavePendingAsync(string reference, CancellationToken cancellationToken)
     {
         try
         {

@@ -12,7 +12,7 @@ namespace Application.Transfers.Queries.GetTransferById;
 public class GetTransferByIdQueryHandler : IRequestHandler<GetTransferByIdQuery, TransferDto>
 {
 
-    private readonly IAppDbContext _context ;
+    private readonly IAppDbContext _context;
 
     public GetTransferByIdQueryHandler(IAppDbContext context)
     {
@@ -21,12 +21,12 @@ public class GetTransferByIdQueryHandler : IRequestHandler<GetTransferByIdQuery,
 
     public async Task<TransferDto> Handle(GetTransferByIdQuery request, CancellationToken cancellationToken)
     {
-         var transfer =  await _context.Transfers
-                .AsNoTracking()
-                .Where(t => t.Id == request.Id)
-                .Select(TransferaMapping.ToDtoExpression)
-                .FirstOrDefaultAsync(cancellationToken);
+        var transfer = await _context.Transfers
+               .AsNoTracking()
+               .Where(t => t.Id == request.Id)
+               .Select(TransferaMapping.ToDtoExpression)
+               .FirstOrDefaultAsync(cancellationToken);
 
-                return transfer ?? throw new NotFoundException($"Transfer with id {request.Id} was not found.");
+        return transfer ?? throw new NotFoundException($"Transfer with id {request.Id} was not found.");
     }
 }

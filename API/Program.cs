@@ -21,12 +21,12 @@ builder.Services.AddControllers();
 var app = builder.Build();
 
 
-app.UseExceptionHandler();  
-if(app.Environment.IsDevelopment())
+app.UseExceptionHandler();
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-}  
+}
 
 
 
